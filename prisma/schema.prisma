@@ -1,0 +1,135 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model AdminUser {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  role      String   @default("ADMIN")
+  createdAt DateTime @default(now())
+}
+
+model Cliente {
+  id              String    @id @default(cuid())
+  email           String    @unique
+  password        String
+  nombre          String
+  telefono        String?
+  emailVerificado Boolean   @default(false)
+  tokenVerif      String?
+  createdAt       DateTime  @default(now())
+  pedidos        Pedido[]
+}
+
+model Producto {
+  id               String       @id @default(cuid())
+  nombre           String
+  slug             String       @unique
+  descripcion      String?
+  descripcionLarga String?
+  tipo             String
+  precio           Float
+  activo           Boolean      @default(true)
+  opciones         Json?
+  imagenUrl        String?
+  metaTitle        String?
+  metaDesc         String?
+  requiereFotos    Boolean      @default(false)
+  cantidadFotos    Int?
+  envioGratis      Boolean      @default(false)
+  pedidos          ItemPedido[]
+  createdAt        DateTime     @default(now())
+}
+
+model Cupon {
+  id           String     @id @default(cuid())
+  codigo       String     @unique
+  descripcion  String?
+  tipo         String
+  valor        Float
+  minCompra    Float?
+  maxUsos      Int?
+  usosActuales Int        @default(0)
+  activo       Boolean    @default(true)
+  fechaInicio  DateTime?
+  fechaFin     DateTime?
+  pedidos     Pedido[]
+  createdAt    DateTime   @default(now())
+}
+
+model Pedido {
+  id             String             @id @default(cuid())
+  numero         String             @unique
+  clienteId      String?
+  cliente        Cliente?           @relation(fields: [clienteId], references: [id])
+  clienteEmail   String
+  clienteNombre  String
+  clienteTel     String?
+  items          ItemPedido[]
+  estado         String            @default("PENDIENTE")
+  tipoEntrega    String
+  direccion      String?
+  guiaTracking   String?
+  courier        String?
+  costoEnvio     Float?
+  notas          String?
+  notasInternas  String?
+  metodoPago     String
+  estadoPago     String            @default("PENDIENTE")
+  totalBruto     Float
+  descuento      Float             @default(0)
+  totalFinal     Float
+  cuponId        String?
+  cupon          Cupon?             @relation(fields: [cuponId], references: [id])
+  mpPreferenceId String?
+  mpPaymentId    String?
+  mpStatus       String?
+  comprobanteUrl    String?
+  comprobanteEstado String?
+  archivos          Archivo[]
+  historialEstados HistorialEstado[]
+  creadoEn        DateTime           @default(now())
+  actualizadoEn   DateTime           @updatedAt
+}
+
+model HistorialEstado {
+  id        String   @id @default(cuid())
+  pedido    Pedido   @relation(fields: [pedidoId], references: [id])
+  pedidoId  String
+  estado    String
+  nota      String?
+  crearEn   DateTime @default(now())
+}
+
+model ItemPedido {
+  id         String   @id @default(cuid())
+  pedido     Pedido   @relation(fields: [pedidoId], references: [id])
+  pedidoId   String
+  producto   Producto @relation(fields: [productoId], references: [id])
+  productoId String
+  cantidad   Int
+  precio     Float
+  opciones   Json?
+}
+
+model Archivo {
+  id        String   @id @default(cuid())
+  pedido    Pedido   @relation(fields: [pedidoId], references: [id])
+  pedidoId  String
+  nombre    String
+  url       String
+  tamano    Int
+  tipo      String
+  subirEn   DateTime @default(now())
+}
+
+model Configuracion {
+  id    String @id @default("default")
+  datos Json
+}

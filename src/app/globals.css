@@ -1,0 +1,205 @@
+@import "tailwindcss";
+
+:root {
+  --background: #FFF8F2;
+  --foreground: #5C3D2E;
+  --card: #FFFFFF;
+  --card-foreground: #5C3D2E;
+  --popover: #FFFFFF;
+  --popover-foreground: #5C3D2E;
+  --primary: #F9C6C9;
+  --primary-foreground: #5C3D2E;
+  --secondary: #D4B8E0;
+  --secondary-foreground: #5C3D2E;
+  --muted: #F5F5F5;
+  --muted-foreground: #737373;
+  --accent: #B8E0D2;
+  --accent-foreground: #5C3D2E;
+  --destructive: #F9C6C9;
+  --destructive-foreground: #5C3D2E;
+  --border: #E5E5E5;
+  --input: #E5E5E5;
+  --ring: #F9C6C9;
+  --radius: 1rem;
+}
+
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+}
+
+* {
+  border-color: var(--border);
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: 'DM Sans', sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Playfair Display', serif;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes floatStar {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 0.3;
+  }
+  50% {
+    transform: translateY(-15px) rotate(180deg);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmerBtn {
+  from { left: -100%; }
+  to { left: 100%; }
+}
+
+@keyframes float {
+  0%, 100% {
+    opacity: 0;
+    transform: translateY(0) scale(0.5);
+  }
+  50% {
+    opacity: 0.6;
+    transform: translateY(-15px) scale(1);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes gradientShift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* Hero animations */
+.hero-title {
+  animation: fadeSlideUp 0.8s ease-out forwards;
+}
+
+.hero-subtitle {
+  animation: fadeSlideUp 0.8s ease-out forwards;
+  animation-delay: 0.2s;
+  opacity: 0;
+}
+
+.hero-buttons {
+  animation: fadeSlideUp 0.8s ease-out forwards;
+  animation-delay: 0.4s;
+  opacity: 0;
+}
+
+/* Star particles */
+.star-particle {
+  position: absolute;
+  pointer-events: none;
+  animation: floatStar 4s ease-in-out infinite;
+  color: #F9C6C9;
+}
+
+.star-1 { animation-delay: 0s; animation-duration: 4s; }
+.star-2 { animation-delay: 0.5s; animation-duration: 5s; }
+.star-3 { animation-delay: 1s; animation-duration: 4.5s; }
+.star-4 { animation-delay: 1.5s; animation-duration: 5.5s; }
+.star-5 { animation-delay: 2s; animation-duration: 4s; }
+.star-6 { animation-delay: 2.5s; animation-duration: 5s; }
+.star-7 { animation-delay: 0.3s; animation-duration: 4.8s; }
+.star-8 { animation-delay: 1.2s; animation-duration: 5.2s; }
+.star-9 { animation-delay: 1.8s; animation-duration: 4.2s; }
+.star-10 { animation-delay: 2.2s; animation-duration: 5.8s; }
+
+/* Card hover */
+.card-hover {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(92, 61, 46, 0.15);
+}
+
+/* Product cards stagger */
+.product-card {
+  opacity: 0;
+  animation: fadeSlideUp 0.6s ease-out forwards;
+}
+
+.product-card:nth-child(1) { animation-delay: 0s; }
+.product-card:nth-child(2) { animation-delay: 0.1s; }
+.product-card:nth-child(3) { animation-delay: 0.2s; }
+.product-card:nth-child(4) { animation-delay: 0.3s; }
+
+/* Shimmer button */
+.btn-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-shimmer:hover::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  animation: shimmerBtn 0.8s ease forwards;
+}
