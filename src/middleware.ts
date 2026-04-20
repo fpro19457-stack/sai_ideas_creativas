@@ -57,7 +57,7 @@ setInterval(() => {
 
 async function verifyClienteJWT(token: string): Promise<boolean> {
   try {
-    const secret = new TextEncoder().encode(process.env.NEXTAUTH_SECRET || "fallback-secret-change-in-production");
+    const secret = new TextEncoder().encode(process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || "fallback-secret-change-in-production");
     await jose.jwtVerify(token, secret);
     return true;
   } catch {
@@ -75,9 +75,9 @@ export async function middleware(request: NextRequest) {
     }
 
     const token = await getToken({
-      req: request,
-      secret: process.env.NEXTAUTH_SECRET,
-    });
+  req: request,
+  secret: process.env.AUTH_SECRET,
+});
 
     if (!token) {
       const loginUrl = new URL("/admin/login", request.url);
