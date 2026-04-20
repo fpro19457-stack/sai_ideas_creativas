@@ -1,24 +1,15 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import jwt from "jsonwebtoken";
-
-const JWT_SECRET = process.env.NEXTAUTH_SECRET || "fallback-secret";
+import { auth } from "@/lib/auth";
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (pathname.startsWith("/admin") && !pathname.startsWith("/admin/login")) {
-    const adminSession = request.cookies.get("admin-session")?.value;
+    const session = await auth();
+    console.log("[Middleware] /admin check - pathname:", pathname, "session:", session ? "exists" : "null");
 
-    if (!adminSession) {
-      const loginUrl = new URL("/admin/login", request.url);
-      loginUrl.searchParams.set("from", pathname);
-      return NextResponse.redirect(loginUrl);
-    }
-
-    try {
-      jwt.verify(adminSession, JWT_SECRET);
-    } catch {
+    if (!session) {
       const loginUrl = new URL("/admin/login", request.url);
       loginUrl.searchParams.set("from", pathname);
       return NextResponse.redirect(loginUrl);

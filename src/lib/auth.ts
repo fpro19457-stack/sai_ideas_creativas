@@ -12,6 +12,7 @@ const {handlers, auth, signIn, signOut} = NextAuth({
         password: {label: "Password", type: "password"},
       },
       async authorize(credentials) {
+        console.log("[Auth] authorize called with:", credentials?.email);
         if (!credentials?.email || !credentials?.password) {
           return null;
         }
@@ -20,6 +21,7 @@ const {handlers, auth, signIn, signOut} = NextAuth({
           where: {email: credentials.email as string},
         });
 
+        console.log("[Auth] user found:", user ? "yes" : "no");
         if (!user) {
           return null;
         }
@@ -29,6 +31,7 @@ const {handlers, auth, signIn, signOut} = NextAuth({
           user.password
         );
 
+        console.log("[Auth] password valid:", isValid);
         if (!isValid) {
           return null;
         }
@@ -65,6 +68,18 @@ const {handlers, auth, signIn, signOut} = NextAuth({
     strategy: "jwt",
   },
   trustHost: true,
+  basePath: "/api/auth",
+  cookies: {
+    sessionToken: {
+      name: `next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
+  },
 });
 
 export {handlers, auth, signIn, signOut};

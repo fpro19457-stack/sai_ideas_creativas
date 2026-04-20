@@ -8,6 +8,7 @@ import {Badge} from "@/components/ui/badge";
 import Link from "next/link";
 import {ShoppingCart, Package, Clock, DollarSign} from "lucide-react";
 import {PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend} from "recharts";
+import {signOut} from "next-auth/react";
 
 const ESTADO_COLORS: Record<string, string> = {
   PENDIENTE: "#F9C6C9",
@@ -43,6 +44,10 @@ export default function AdminDashboard() {
   const {data: session, status} = useSession();
   const router = useRouter();
   const [stats, setStats] = useState<Stats | null>(null);
+
+  useEffect(() => {
+    console.log("[Dashboard] Session status:", status, "Session:", session);
+  }, [status, session]);
 
   useEffect(() => {
     if (status === "unauthenticated") {
