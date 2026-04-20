@@ -1,11 +1,10 @@
 "use client";
 
 import {useState, useEffect} from "react";
-import {useRouter} from "next/navigation";
 import {Button} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
 import {Badge} from "@/components/ui/badge";
-import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
+import {Card, CardContent} from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -50,7 +49,6 @@ const estadoLabels: Record<string, string> = {
 };
 
 export default function AdminPedidosPage() {
-  const router = useRouter();
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
@@ -60,35 +58,41 @@ export default function AdminPedidosPage() {
   const [tipoEntrega, setTipoEntrega] = useState("all");
   const [search, setSearch] = useState("");
 
-  const fetchPedidos = async () => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams();
-      if (estado !== "all") params.set("estado", estado);
-      if (tipoEntrega !== "all") params.set("tipoEntrega", tipoEntrega);
-      if (search) params.set("search", search);
-      params.set("page", page.toString());
-
-      const res = await fetch(`/api/pedidos?${params}`);
-      const data = await res.json();
-      setPedidos(data.pedidos);
-      setTotal(data.total);
-      setTotalPages(data.totalPages);
-    } catch (error) {
-      console.error("Error fetching pedidos:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    let cancelled = false;
+
+    const fetchPedidos = async () => {
+      setLoading(true);
+      try {
+        const params = new URLSearchParams();
+        if (estado !== "all") params.set("estado", estado);
+        if (tipoEntrega !== "all") params.set("tipoEntrega", tipoEntrega);
+        if (search) params.set("search", search);
+        params.set("page", page.toString());
+
+        const res = await fetch(`/api/pedidos?${params}`);
+        const data = await res.json();
+        if (cancelled) return;
+        setPedidos(data.pedidos);
+        setTotal(data.total);
+        setTotalPages(data.totalPages);
+      } catch (error) {
+        console.error("Error fetching pedidos:", error);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
     fetchPedidos();
-  }, [page, estado, tipoEntrega]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [page, estado, tipoEntrega, search]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setPage(1);
-    fetchPedidos();
   };
 
   const formatDate = (date: string) => {
@@ -202,7 +206,7 @@ export default function AdminPedidosPage() {
                         <td className="p-3 text-right">
                           <Button
                             variant="ghost"
-                            onClick={() => router.push(`/admin/pedidos/${pedido.id}`)}
+                            onClick={() => window.location.href = `/admin/pedidos/${pedido.id}`}
                           >
                             Ver
                           </Button>

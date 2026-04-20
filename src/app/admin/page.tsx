@@ -1,8 +1,6 @@
 "use client";
 
 import {useState, useEffect} from "react";
-import {useSession} from "next-auth/react";
-import {useRouter} from "next/navigation";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import {Badge} from "@/components/ui/badge";
 import Link from "next/link";
@@ -40,30 +38,42 @@ interface Stats {
 }
 
 export default function AdminDashboard() {
-  const {data: session, status} = useSession();
-  const router = useRouter();
   const [stats, setStats] = useState<Stats | null>(null);
+  const [adminEmail, setAdminEmail] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/admin/login");
-    }
-  }, [status, router]);
+    let cancelled = false;
 
-  useEffect(() => {
-    if (status !== "authenticated") return;
+    const fetchData = async () => {
+      const resPerfil = await fetch("/api/admin/perfil");
+      if (cancelled) return;
 
-    fetch("/api/admin/stats")
-      .then((r) => r.json())
-      .then((data) => {
-        if (!data.error) {
-          setStats(data);
-        }
-      })
-      .catch(console.error);
-  }, [status]);
+      if (!resPerfil.ok) {
+        window.location.href = "/admin/login";
+        return;
+      }
+      const data = await resPerfil.json();
+      if (cancelled) return;
+      setAdminEmail(data.email);
 
-  if (status === "loading" || !stats) {
+      const resStats = await fetch("/api/admin/stats");
+      if (resStats.ok) {
+        const statsData = await resStats.json();
+        if (cancelled) return;
+        setStats(statsData);
+      }
+      if (!cancelled) setLoading(false);
+    };
+
+    fetchData();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (loading) {
     return (
       <div className="space-y-6">
         <div>
@@ -79,7 +89,7 @@ export default function AdminDashboard() {
       <div>
         <h1 className="text-3xl font-playfair mb-2">Dashboard</h1>
         <p className="text-muted-foreground">
-          Bienvenido de vuelta, {session?.user?.email}
+          Bienvenido de vuelta, {adminEmail}
         </p>
       </div>
 
@@ -89,7 +99,7 @@ export default function AdminDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Total Pedidos</p>
-                <p className="text-3xl font-bold">{stats.pedidosCount}</p>
+                <p className="text-3xl font-bold">{stats?.pedidosCount || 0}</p>
               </div>
               <ShoppingCart className="w-10 h-10 text-[#F9C6C9]" />
             </div>
@@ -101,7 +111,7 @@ export default function AdminDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Productos</p>
-                <p className="text-3xl font-bold">{stats.productosCount}</p>
+                <p className="text-3xl font-bold">{stats?.productosCount || 0}</p>
               </div>
               <Package className="w-10 h-10 text-[#D4B8E0]" />
             </div>
@@ -113,7 +123,7 @@ export default function AdminDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Pendientes</p>
-                <p className="text-3xl font-bold">{stats.pedidosPendientes}</p>
+                <p className="text-3xl font-bold">{stats?.pedidosPendientes || 0}</p>
               </div>
               <Clock className="w-10 h-10 text-yellow-500" />
             </div>
@@ -138,17 +148,12 @@ export default function AdminDashboard() {
           <CardTitle>Últimos Pedidos</CardTitle>
         </CardHeader>
         <CardContent>
-          {stats.pedidosRecientes.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              No hay pedidos aún
-            </div>
+          {!stats?.pedidosRecientes || stats.pedidosRecientes.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">No hay pedidos aún</div>
           ) : (
             <div className="space-y-4">
               {stats.pedidosRecientes.map((pedido: any) => (
-                <div
-                  key={pedido.id}
-                  className="flex items-center justify-between p-4 rounded-xl border"
-                >
+                <div key={pedido.id} className="flex items-center justify-between p-4 rounded-xl border">
                   <div>
                     <p className="font-medium">{pedido.numero}</p>
                     <p className="text-sm text-muted-foreground">
@@ -156,22 +161,14 @@ export default function AdminDashboard() {
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge variant={estadoColors[pedido.estado] as any}>
-                      {pedido.estado}
-                    </Badge>
-                    <Link
-                      href={`/admin/pedidos/${pedido.id}`}
-                      className="text-sm text-primary hover:underline"
-                    >
+                    <Badge variant={estadoColors[pedido.estado] as any}>{pedido.estado}</Badge>
+                    <Link href={`/admin/pedidos/${pedido.id}`} className="text-sm text-primary hover:underline">
                       Ver
                     </Link>
                   </div>
                 </div>
               ))}
-              <Link
-                href="/admin/pedidos"
-                className="block text-center text-sm text-primary hover:underline pt-2"
-              >
+              <Link href="/admin/pedidos" className="block text-center text-sm text-primary hover:underline pt-2">
                 Ver todos los pedidos →
               </Link>
             </div>
@@ -179,7 +176,7 @@ export default function AdminDashboard() {
         </CardContent>
       </Card>
 
-      {stats.pedidosPorEstado.length > 0 && (
+      {stats?.pedidosPorEstado && stats.pedidosPorEstado.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle>Pedidos por Estado</CardTitle>
@@ -199,7 +196,7 @@ export default function AdminDashboard() {
                     cx="50%"
                     cy="50%"
                     outerRadius={100}
-                    label={({name, value}: {name?: string; value: number}) => `${name || 'Unknown'}: ${value}`}
+                    label={({name, value}) => `${name}: ${value}`}
                   >
                     {stats.pedidosPorEstado.map((_: any, index: number) => (
                       <Cell key={`cell-${index}`} fill={ESTADO_COLORS[stats.pedidosPorEstado[index]?.estado] || "#E5E7EB"} />

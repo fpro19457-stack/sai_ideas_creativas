@@ -5,7 +5,7 @@ import {Button} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
 import {Badge} from "@/components/ui/badge";
-import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
+import {Card, CardContent} from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -35,6 +35,7 @@ interface Producto {
   activo: boolean;
   imagenUrl: string | null;
   envioGratis: boolean;
+  cantidadFotos: number | null;
   createdAt: string;
 }
 
@@ -63,20 +64,33 @@ export default function AdminProductosPage() {
   });
 
   useEffect(() => {
-    fetchProductos();
-  }, []);
+    let cancelled = false;
 
-  const fetchProductos = async () => {
-    try {
-      const res = await fetch("/api/productos");
-      const data = await res.json();
-      setProductos(data);
-    } catch (error) {
-      console.error("Error fetching productos:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    const fetchProductos = async () => {
+      try {
+        const resPerfil = await fetch("/api/admin/perfil");
+        if (cancelled) return;
+        if (!resPerfil.ok) {
+          window.location.href = "/admin/login";
+          return;
+        }
+
+        const res = await fetch("/api/productos");
+        const data = await res.json();
+        if (!cancelled) setProductos(data);
+      } catch (error) {
+        console.error("Error fetching productos:", error);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    fetchProductos();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const openModal = (producto?: Producto) => {
     if (producto) {
@@ -89,8 +103,8 @@ export default function AdminProductosPage() {
         precio: producto.precio.toString(),
         imagenUrl: producto.imagenUrl || "",
         activo: producto.activo,
-        cantidadFotos: (producto as any).cantidadFotos || 0,
-        envioGratis: producto.envioGratis || false,
+        cantidadFotos: producto.cantidadFotos || 0,
+        envioGratis: producto.envioGratis,
       });
     } else {
       setEditingProducto(null);
@@ -129,7 +143,9 @@ export default function AdminProductosPage() {
       });
 
       if (res.ok) {
-        await fetchProductos();
+        const res = await fetch("/api/productos");
+        const data = await res.json();
+        setProductos(data);
         closeModal();
       }
     } catch (error) {
@@ -140,9 +156,9 @@ export default function AdminProductosPage() {
   const handleDelete = async (producto: Producto) => {
     if (!confirm(`¿Eliminar "${producto.nombre}"?`)) return;
     try {
-      const res = await fetch(`/api/productos/${producto.id}`, { method: "DELETE" });
+      const res = await fetch(`/api/productos/${producto.id}`, {method: "DELETE"});
       if (res.ok) {
-        await fetchProductos();
+        setProductos(productos.filter((p) => p.id !== producto.id));
       }
     } catch (error) {
       console.error("Error deleting producto:", error);
@@ -156,7 +172,11 @@ export default function AdminProductosPage() {
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify({activo: !producto.activo}),
       });
-      await fetchProductos();
+      setProductos(
+        productos.map((p) =>
+          p.id === producto.id ? {...p, activo: !p.activo} : p
+        )
+      );
     } catch (error) {
       console.error("Error toggling producto:", error);
     }

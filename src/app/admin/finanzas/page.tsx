@@ -23,7 +23,7 @@ import {
   Cell,
   Legend,
 } from "recharts";
-import {DollarSign, CreditCard, Building, Banknote, TrendingDown} from "lucide-react";
+import {DollarSign, CreditCard, Building, TrendingDown} from "lucide-react";
 
 interface Stats {
   resumen: {
@@ -47,7 +47,34 @@ export default function AdminFinanzasPage() {
   const [periodo, setPeriodo] = useState("mes");
 
   useEffect(() => {
+    let cancelled = false;
+
+    const fetchFinanzas = async () => {
+      setLoading(true);
+      try {
+        const resPerfil = await fetch("/api/admin/perfil");
+        if (cancelled) return;
+        if (!resPerfil.ok) {
+          window.location.href = "/admin/login";
+          return;
+        }
+
+        const {desde, hasta} = getDateRange();
+        const res = await fetch(`/api/admin/finanzas?desde=${desde}&hasta=${hasta}`);
+        const data = await res.json();
+        if (!cancelled) setStats(data);
+      } catch (error) {
+        console.error("Error fetching finanzas:", error);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
     fetchFinanzas();
+
+    return () => {
+      cancelled = true;
+    };
   }, [periodo]);
 
   const getDateRange = () => {
@@ -68,20 +95,6 @@ export default function AdminFinanzasPage() {
     }
 
     return {desde: desde.toISOString(), hasta: now.toISOString()};
-  };
-
-  const fetchFinanzas = async () => {
-    setLoading(true);
-    try {
-      const {desde, hasta} = getDateRange();
-      const res = await fetch(`/api/admin/finanzas?desde=${desde}&hasta=${hasta}`);
-      const data = await res.json();
-      setStats(data);
-    } catch (error) {
-      console.error("Error fetching finanzas:", error);
-    } finally {
-      setLoading(false);
-    }
   };
 
   const exportCSV = () => {

@@ -26,22 +26,32 @@ export default function AdminPerfilPage() {
   });
 
   useEffect(() => {
-    fetchPerfil();
-  }, []);
+    let cancelled = false;
 
-  const fetchPerfil = async () => {
-    try {
-      const res = await fetch("/api/admin/perfil");
-      if (res.ok) {
-        const data = await res.json();
-        setAdmin(data);
+    const fetchPerfil = async () => {
+      try {
+        const resPerfil = await fetch("/api/admin/perfil");
+        if (cancelled) return;
+        if (!resPerfil.ok) {
+          window.location.href = "/admin/login";
+          return;
+        }
+
+        const data = await resPerfil.json();
+        if (!cancelled) setAdmin(data);
+      } catch (error) {
+        console.error("Error fetching perfil:", error);
+      } finally {
+        if (!cancelled) setLoading(false);
       }
-    } catch (error) {
-      console.error("Error fetching perfil:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+
+    fetchPerfil();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleSubmitPassword = async (e: React.FormEvent) => {
     e.preventDefault();

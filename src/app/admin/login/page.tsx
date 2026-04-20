@@ -1,19 +1,24 @@
 "use client";
 
-import {useState} from "react";
-import {useRouter} from "next/navigation";
-import Link from "next/link";
-import {Button} from "@/components/ui/button";
+import {useState, useEffect} from "react";
+import {Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle} from "@/components/ui/card";
 import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
-import {Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle} from "@/components/ui/card";
+import {Button} from "@/components/ui/button";
 
 export default function LoginPage() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const cookies = document.cookie.split("; ");
+    const adminSession = cookies.find((c) => c.startsWith("admin-session="));
+    if (adminSession) {
+      window.location.href = "/admin";
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,7 +33,7 @@ export default function LoginPage() {
       });
 
       if (res.ok) {
-        router.push("/admin");
+        window.location.href = "/admin";
       } else {
         setError("Credenciales incorrectas");
       }
@@ -84,9 +89,6 @@ export default function LoginPage() {
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Ingresando..." : "Iniciar sesión"}
             </Button>
-            <Link href="/" className="text-sm text-muted-foreground hover:text-foreground text-center">
-              ← Volver a la tienda
-            </Link>
           </CardFooter>
         </form>
       </Card>

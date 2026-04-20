@@ -5,7 +5,7 @@ import {Button} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
 import {Badge} from "@/components/ui/badge";
-import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
+import {Card, CardContent} from "@/components/ui/card";
 import {Switch} from "@/components/ui/switch";
 import {
   Dialog,
@@ -52,20 +52,33 @@ export default function AdminCuponesPage() {
   });
 
   useEffect(() => {
-    fetchCupones();
-  }, []);
+    let cancelled = false;
 
-  const fetchCupones = async () => {
-    try {
-      const res = await fetch("/api/cupones");
-      const data = await res.json();
-      setCupones(data);
-    } catch (error) {
-      console.error("Error fetching cupones:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    const fetchCupones = async () => {
+      try {
+        const resPerfil = await fetch("/api/admin/perfil");
+        if (cancelled) return;
+        if (!resPerfil.ok) {
+          window.location.href = "/admin/login";
+          return;
+        }
+
+        const res = await fetch("/api/cupones");
+        const data = await res.json();
+        if (!cancelled) setCupones(data);
+      } catch (error) {
+        console.error("Error fetching cupones:", error);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    fetchCupones();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const openModal = (cupon?: Cupon) => {
     if (cupon) {
@@ -116,7 +129,9 @@ export default function AdminCuponesPage() {
       });
 
       if (res.ok) {
-        await fetchCupones();
+        const res = await fetch("/api/cupones");
+        const data = await res.json();
+        setCupones(data);
         closeModal();
       }
     } catch (error) {
@@ -131,7 +146,11 @@ export default function AdminCuponesPage() {
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify({activo: !cupon.activo}),
       });
-      await fetchCupones();
+      setCupones(
+        cupones.map((c) =>
+          c.id === cupon.id ? {...c, activo: !c.activo} : c
+        )
+      );
     } catch (error) {
       console.error("Error toggling cupon:", error);
     }

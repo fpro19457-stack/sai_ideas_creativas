@@ -1,18 +1,29 @@
 import {NextResponse} from "next/server";
-import {auth} from "@/lib/auth";
 import {prisma} from "@/lib/db";
+import jwt from "jsonwebtoken";
+import {cookies} from "next/headers";
 import bcrypt from "bcryptjs";
+
+const JWT_SECRET = process.env.NEXTAUTH_SECRET || "fallback-secret";
 
 export async function GET() {
   try {
-    const session = await auth();
+    const cookieStore = await cookies();
+    const adminSession = cookieStore.get("admin-session")?.value;
 
-    if (!session?.user?.email) {
+    if (!adminSession) {
       return NextResponse.json({error: "No autenticado"}, {status: 401});
     }
 
+    let tokenData;
+    try {
+      tokenData = jwt.verify(adminSession, JWT_SECRET) as {email: string};
+    } catch {
+      return NextResponse.json({error: "Sesión inválida"}, {status: 401});
+    }
+
     const admin = await prisma.adminUser.findUnique({
-      where: {email: session.user.email},
+      where: {email: tokenData.email},
       select: {id: true, email: true, role: true},
     });
 
@@ -29,10 +40,18 @@ export async function GET() {
 
 export async function PUT(request: Request) {
   try {
-    const session = await auth();
+    const cookieStore = await cookies();
+    const adminSession = cookieStore.get("admin-session")?.value;
 
-    if (!session?.user?.email) {
+    if (!adminSession) {
       return NextResponse.json({error: "No autenticado"}, {status: 401});
+    }
+
+    let tokenData;
+    try {
+      tokenData = jwt.verify(adminSession, JWT_SECRET) as {email: string};
+    } catch {
+      return NextResponse.json({error: "Sesión inválida"}, {status: 401});
     }
 
     const body = await request.json();
@@ -47,7 +66,7 @@ export async function PUT(request: Request) {
     }
 
     const admin = await prisma.adminUser.findUnique({
-      where: {email: session.user.email},
+      where: {email: tokenData.email},
       select: {id: true, password: true},
     });
 
