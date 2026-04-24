@@ -8,7 +8,7 @@ import {sendEmailVerificacion} from "@/lib/email";
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    let validated: {nombre: string; email: string; password: string};
+    let validated: {nombre: string; email: string; telefono?: string; password: string};
     try {
       validated = validateOrThrow(registroSchema, body);
     } catch (err: any) {
