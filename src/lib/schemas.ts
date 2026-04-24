@@ -20,6 +20,7 @@ export const checkoutSchema = z.object({
 export const registroSchema = z.object({
   nombre: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
   email: z.string().email("Email inválido"),
+  telefono: z.string().optional(),
   password: z.string()
     .min(8, "La contraseña debe tener al menos 8 caracteres")
     .regex(/\d/, "La contraseña debe contener al menos un número"),

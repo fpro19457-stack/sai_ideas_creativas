@@ -140,6 +140,24 @@ export async function sendEmailPagoConfirmado(pedido: any) {
   );
 }
 
+export async function sendEmailVerificacion(email: string, nombre: string, tokenVerif: string) {
+  const contenido = `
+    <div style="font-family: 'DM Sans', sans-serif; background: #FFF8F2; padding: 40px; max-width: 600px; margin: 0 auto;">
+      <div style="text-align: center; margin-bottom: 30px;">
+        <h1 style="font-family: 'Playfair Display', serif; color: #5C3D2E; font-size: 24px;">✦ Sai Ideas Creativas</h1>
+      </div>
+      <div style="background: white; border-radius: 20px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.06);">
+        <h2 style="font-family: 'Playfair Display', serif; color: #5C3D2E;">¡Bienvenidx, ${nombre}! 🎉</h2>
+        <p style="color: #5C3D2E;">Gracias por crear tu cuenta. Por favor verificá tu email haciendo click en el siguiente enlace:</p>
+        <a href="${process.env.NEXT_PUBLIC_URL}/cuenta/verificar?token=${tokenVerif}" style="display: inline-block; background: #F9C6C9; color: #5C3D2E; padding: 12px 24px; border-radius: 12px; text-decoration: none; margin-top: 20px;">Verificar mi email</a>
+      </div>
+      <p style="text-align: center; color: #737373; font-size: 12px; margin-top: 30px;">Hecho con 💕 por Sai Ideas Creativas</p>
+    </div>
+  `;
+
+  await sendEmail(email, "Verificá tu email — Sai Ideas Creativas", contenido);
+}
+
 export async function sendEmailAdminNuevoPedido(pedido: any) {
   const metodoLabel = pedido.metodoPago === "MERCADOPAGO" ? "MercadoPago"
     : pedido.metodoPago === "TRANSFERENCIA" ? "Transferencia"
