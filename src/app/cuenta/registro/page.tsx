@@ -13,6 +13,7 @@ export default function RegistroPage() {
   const [formData, setFormData] = useState({
     nombre: "",
     email: "",
+    telefono: "",
     password: "",
     confirmPassword: "",
   });
@@ -43,6 +44,7 @@ export default function RegistroPage() {
         body: JSON.stringify({
           nombre: formData.nombre,
           email: formData.email,
+          telefono: formData.telefono,
           password: formData.password,
         }),
       });
@@ -106,6 +108,7 @@ export default function RegistroPage() {
               <Label htmlFor="nombre">Nombre completo</Label>
               <Input
                 id="nombre"
+                placeholder="Nombre completo"
                 value={formData.nombre}
                 onChange={(e) => setFormData({...formData, nombre: e.target.value})}
                 required
@@ -116,9 +119,20 @@ export default function RegistroPage() {
               <Input
                 id="email"
                 type="email"
+                placeholder="Email"
                 value={formData.email}
                 onChange={(e) => setFormData({...formData, email: e.target.value})}
                 required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="telefono">Teléfono (opcional)</Label>
+              <Input
+                id="telefono"
+                type="tel"
+                placeholder="Teléfono"
+                value={formData.telefono}
+                onChange={(e) => setFormData({...formData, telefono: e.target.value})}
               />
             </div>
             <div className="space-y-2">
@@ -126,6 +140,7 @@ export default function RegistroPage() {
               <Input
                 id="password"
                 type="password"
+                placeholder="Contraseña"
                 value={formData.password}
                 onChange={(e) => setFormData({...formData, password: e.target.value})}
                 required
@@ -136,6 +151,7 @@ export default function RegistroPage() {
               <Input
                 id="confirmPassword"
                 type="password"
+                placeholder="Confirmar contraseña"
                 value={formData.confirmPassword}
                 onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
                 required
